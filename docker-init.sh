@@ -1,24 +1,39 @@
+# docker stop $(docker ps -aq)
+# docker rm -f $(docker ps -aq)
+
 #!/bin/bash
 
-# 用户信息, 格式为 "用户名:端口:密码"
-users=(
-    "user1:2221:password1"
-    "user2:2222:password2"
-    "user3:2223:password3"
-)
+declare -A users
+output_file="user_credentials.txt"
 
-# 遍历用户信息
-for user_info in "${users[@]}"; do
-    IFS=':' read -r username port password <<< "$user_info"
+CONTAINER_COUNT=80
 
-    # 创建并运行 Alpine 容器
-    sudo docker run -d \
+> "$output_file"
+
+for i in $(seq 1 ${CONTAINER_COUNT}); do
+    username="user$i"
+    port=$((2200 + i))
+    password=$(openssl rand -base64 12)
+
+    users[$i]="$username:$port:$password"
+
+    if sudo docker run -d \
         --name "$username" \
+        --rm \
         -p "$port:22" \
         alpine /bin/sh -c "\
             apk add --no-cache openssh tini && \
             adduser -D $username && \
             echo '$username:$password' | chpasswd && \
             ssh-keygen -A && \
-            exec tini -- /usr/sbin/sshd -D"
+            exec tini -- /usr/sbin/sshd -D"; then
+        echo "Container $username created on port $port"
+        # 将用户信息写入文件
+        echo "$username:$port:$password" >> "$output_file"
+    else
+        echo "Failed to create container $username"
+    fi
 done
+
+echo "Created users:"
+cat "$output_file"

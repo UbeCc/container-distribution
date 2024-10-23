@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THU容器分配</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #4A90E2;
+        }
+        h3 {
+            text-align: center;
+            color: #666;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #4A90E2;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357ABD;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        .ssh-command {
+            font-family: monospace;
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>清华大学计算机系 2024 基础技能培训</h2>
+        <h3>Linux & Shell 容器分配系统</h3>
+        <form id="allocation-form">
+            <input type="text" id="student-id" name="student_id" placeholder="请输入学号" required>
+            <button type="submit">分配容器</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('allocation-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
+
+            const studentId = document.getElementById('student-id').value;
+            const response = await fetch('/allocate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ student_id: studentId })
+            });
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; // 清空之前的结果
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="success">用户名: ${data.username}<br>端口: ${data.port}<br>密码: ${data.password}</div>`;
+                resultDiv.innerHTML += `<div>连接命令: <span class="ssh-command">ssh ${data.username}@59.66.131.246 -p ${data.port}</span></div>`;
+            } else {
+                const error = await response.json();
+                resultDiv.innerHTML = `<div class="error">错误: ${error.error}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

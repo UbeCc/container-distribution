@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>容器分配系统</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 400px; margin: auto; padding: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px; }
+        .result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>容器分配系统</h2>
+        <form id="allocation-form">
+            <input type="text" id="student-id" name="student_id" placeholder="请输入学号" required>
+            <button type="submit">分配容器</button>
+        </form>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('allocation-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // 防止表单默认提交
+
+            const studentId = document.getElementById('student-id').value;
+            const response = await fetch('/allocate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({ student_id: studentId })
+            });
+
+            const resultDiv = document.getElementById('result');
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `用户名: ${data.username}<br>端口: ${data.port}<br>密码: ${data.password}`;
+            } else {
+                const error = await response.json();
+                resultDiv.innerHTML = `错误: ${error.error}`;
+            }
+        });
+    </script>
+</body>
+</html>
